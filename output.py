@@ -1,6 +1,8 @@
 import hashlib
 import math
+from cmath import phase
 from itertools import count
+from pydoc import describe
 
 
 class HashRandom:
@@ -81,3 +83,23 @@ def _generate_svg(daijesuto:bytes,size:int) -> str:
         points = []
         for _ in range(rng.integer(35,65)):
             angle, radius = rng.uniform(0,math.tau),380*math.sqrt(rng.number())
+            points.append((500+radius*math.cos(angle),500+radius*math.sin(angle)))
+        distance = rng.uniform(110,220)
+        for i,(x,y) in enumerate(points):
+            for xx,yy in points[i+1:]:
+                if math.hypot(xx-x,yy-y) < distance:
+                    line(xx,yy,x,y,rng.choise(palette))
+            polygon(x,y,rng.uniform(5,21),rng.integer(3,6),rng.uniform(0,math.tau),rng.choise(palette),True)
+    else:
+        sides = rng.integer(3,9)
+        twist = rng.uniform(0.06,0.3)*rng.choise((-1,1))
+        layers = rng.integer(24,48)
+        phase = rng.uniform(0,math.tau)
+        for i in range(layers):
+            radius = 410*(0.9**i)
+            polygon(500,500,radius,sides,phase+i*twist,palette[i%4])
+            if i%4 == 0:
+                angle = phase+i*twist
+                circle(500+radius*math.cos(angle),500+radius*math.sin(angle),rng.uniform(4,12),rng.choise(palette),True)
+    svg.extend(['</g>','</svg>'])
+    return "\n".join(svg)+"\n"
