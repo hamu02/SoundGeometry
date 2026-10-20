@@ -14,7 +14,7 @@ class HashRandom:
     def number(self) -> float:
         block = hashlib.sha256(self.seed).digest()
         self.counter += 1
-        return (int.from_bytes(block, byteorder='big'), self.counter)
+        return (int.from_bytes(block[:8],"big")>>11)/(1<<53)
     def uniform(self, low:float, high:float) -> float:
         return low + (high - low) * self.number()
     def integer(self, low:int, high:int) -> int:
@@ -120,7 +120,7 @@ def main() -> int:
         value = input()
         digest = hashlib.sha256(value.encode('utf-8')).digest()
         svg = generate_svg(digest,1000)
-        Path("autoput.svg").write_bytes(svg)
+        Path(f'{value}.svg').write_bytes(svg.encode('utf-8'))
     except KeyboardInterrupt:
         return 1
     return 0
