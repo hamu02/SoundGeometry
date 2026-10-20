@@ -1,8 +1,10 @@
+import argparse
 import hashlib
 import math
 from cmath import phase
 from itertools import count
 from pydoc import describe
+from pathlib import Path
 
 
 class HashRandom:
@@ -103,3 +105,24 @@ def _generate_svg(daijesuto:bytes,size:int) -> str:
                 circle(500+radius*math.cos(angle),500+radius*math.sin(angle),rng.uniform(4,12),rng.choise(palette),True)
     svg.extend(['</g>','</svg>'])
     return "\n".join(svg)+"\n"
+def generate_svg(data:bytes,size:int=1000) -> str:
+    return _generate_svg(hashlib.sha256(data).digest(), size)
+def _stream_digest(stream) -> str:
+    digest = hashlib.sha256()
+    for chunk in iter(lambda: stream.read(1024*1024), b""):
+        digest.update(chunk)
+    return digest.digest()
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    source = parser.add_mutually_exclusive_group()
+
+    try:
+        value = input()
+        digest = hashlib.sha256(value.encode('utf-8')).digest()
+        svg = generate_svg(digest,1000)
+        Path("autoput.svg").write_bytes(svg)
+    except KeyboardInterrupt:
+        return 1
+    return 0
+if __name__ == '__main__':
+    raise SystemExit(main())
