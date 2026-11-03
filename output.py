@@ -1,10 +1,15 @@
 import argparse
 import hashlib
 import math
+from unittest import result
+
+import whisper
 from cmath import phase
 from itertools import count
 from pydoc import describe
 from pathlib import Path
+
+from numba.cuda import fp16
 
 
 class HashRandom:
@@ -115,9 +120,11 @@ def _stream_digest(stream) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     source = parser.add_mutually_exclusive_group()
-
+    imput_file = "voice.m4a"
+    model = whisper.load_model("medium")
+    result = model.transcribe(imput_file, fp16=False)
     try:
-        value = input()
+        value = result["text"]
         digest = hashlib.sha256(value.encode('utf-8')).digest()
         svg = generate_svg(digest,1000)
         Path(f'{value}.svg').write_bytes(svg.encode('utf-8'))
