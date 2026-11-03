@@ -12,14 +12,14 @@ class HashRandom:
         self.seed = seed
         self.counter = 0
     def number(self) -> float:
-        block = hashlib.sha256(self.seed).digest()
+        block = hashlib.sha256(self.seed+self.counter.to_bytes(8,"big")).digest()
         self.counter += 1
         return (int.from_bytes(block[:8],"big")>>11)/(1<<53)
     def uniform(self, low:float, high:float) -> float:
         return low + (high - low) * self.number()
     def integer(self, low:int, high:int) -> int:
         return low + int(self.number() * (high - low + 1))
-    def choise(self,values):
+    def choice(self,values):
         return values[self.integer(0,len(values)-1)]
 def _generate_svg(daijesuto:bytes,size:int) -> str:
     rng = HashRandom(daijesuto)
@@ -55,7 +55,7 @@ def _generate_svg(daijesuto:bytes,size:int) -> str:
         symmetry = rng.integer(5,16)
         for layer in range(rng.integer(4,8)):
             radius = 50+layer*49
-            color = rng.choise(palette)
+            color = rng.choice(palette)
             angle = rng.uniform(0,math.tau)
             polygon(500,500,radius,symmetry,angle,color)
             for i in range(symmetry):
@@ -65,14 +65,14 @@ def _generate_svg(daijesuto:bytes,size:int) -> str:
                     circle(x,y,rng.uniform(10,42),color)
                 else:
                     polygon(x,y,rng.uniform(15,50),rng.integer(3,6),theta,color)
-        circle(500,500,rng.uniform(10,30),rng.choise(palette),color)
+        circle(500,500,rng.uniform(10,30),rng.choice(palette),True)
     elif style == 1:
         count = rng.integer(5,10)
         step = 600/count
         for row in range(count):
             for col in range(count):
                 x,y = 200+(col+0.5)*step,200+(row+0.5)*step
-                color = rng.choise(palette)
+                color = rng.choice(palette)
                 radius = rng.uniform(0.22,0.48)*step
                 shape = rng.integer(0,2)
                 if shape==0:
@@ -80,7 +80,7 @@ def _generate_svg(daijesuto:bytes,size:int) -> str:
                 else:
                     polygon(x,y,radius,3 if shape==1 else 4,rng.integer(0,7)*math.pi/4,color,rng.number()<0.5)
                 if rng.number()<0.35:
-                    circle(x,y,radius*0.35,rng.choise(palette))
+                    circle(x,y,radius*0.35,rng.choice(palette))
     elif style == 2:
         points = []
         for _ in range(rng.integer(35,65)):
@@ -90,11 +90,11 @@ def _generate_svg(daijesuto:bytes,size:int) -> str:
         for i,(x,y) in enumerate(points):
             for xx,yy in points[i+1:]:
                 if math.hypot(xx-x,yy-y) < distance:
-                    line(xx,yy,x,y,rng.choise(palette))
-            polygon(x,y,rng.uniform(5,21),rng.integer(3,6),rng.uniform(0,math.tau),rng.choise(palette),True)
+                    line(xx,yy,x,y,rng.choice(palette))
+            polygon(x,y,rng.uniform(5,21),rng.integer(3,6),rng.uniform(0,math.tau),rng.choice(palette),True)
     else:
         sides = rng.integer(3,9)
-        twist = rng.uniform(0.06,0.3)*rng.choise((-1,1))
+        twist = rng.uniform(0.06,0.3)*rng.choice((-1,1))
         layers = rng.integer(24,48)
         phase = rng.uniform(0,math.tau)
         for i in range(layers):
@@ -102,7 +102,7 @@ def _generate_svg(daijesuto:bytes,size:int) -> str:
             polygon(500,500,radius,sides,phase+i*twist,palette[i%4])
             if i%4 == 0:
                 angle = phase+i*twist
-                circle(500+radius*math.cos(angle),500+radius*math.sin(angle),rng.uniform(4,12),rng.choise(palette),True)
+                circle(500+radius*math.cos(angle),500+radius*math.sin(angle),rng.uniform(4,12),rng.choice(palette),True)
     svg.extend(['</g>','</svg>'])
     return "\n".join(svg)+"\n"
 def generate_svg(data:bytes,size:int=1000) -> str:
