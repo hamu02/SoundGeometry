@@ -4,6 +4,12 @@ import math
 from unittest import result
 
 import whisper
+import  ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+import os
+os.environ["PATH"] += os.pathsep + "/opt/homebrew/bin:/usr/local/bin"
+
 from cmath import phase
 from itertools import count
 from pydoc import describe
@@ -121,13 +127,13 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     source = parser.add_mutually_exclusive_group()
     imput_file = "voice.m4a"
-    model = whisper.load_model("medium")
-    result = model.transcribe(imput_file, fp16=False)
+    model = whisper.load_model("large")
+    result = model.transcribe(imput_file, fp16=False, language="ja")
     try:
         value = result["text"]
         digest = hashlib.sha256(value.encode('utf-8')).digest()
         svg = generate_svg(digest,1000)
-        Path(f'{value}.svg').write_bytes(svg.encode('utf-8'))
+        Path(f'{value}({imput_file}).svg').write_bytes(svg.encode('utf-8'))
     except KeyboardInterrupt:
         return 1
     return 0
